@@ -65,8 +65,8 @@ int main(int argc, char *argv[] )
   }
   printf("Debug mode: %d\n", debug);
   
-  /* Attributes for sensor */
-  struct termios attributes;
+  /* settings for sensor */
+  struct termios settings;
   
   /* Baud rate of sensor, applies to input and output */
   speed_t baud_rate = B9600;
@@ -80,37 +80,38 @@ int main(int argc, char *argv[] )
     return  -1;
   }
 
-  /* HOW DOES THIS SECTION WORK?? */
-  //fcntl( RFID_port_fd, F_SETFL, fcntl( RFID_port_fd, F_GETFL ) & ~O_NONBLOCK );
-
-
-  /* Getting current attributes for device to populate structure
-   * Configures attributes based on default values (?)  
+  /* Getting current settings for device to populate structure:
+   * Configures settings based on current values, as the terminal devices 
+   * are set globally. IE, if another process has set baudrate for Serial4,
+   * that setting will persist in our current process. Therefore we need to 
+   * set it from whatever previous value it had to our desired one.   
    */
-  if ( tcgetattr(RFID_port_fd,&attributes) < 0 )
+  if ( tcgetattr(RFID_port_fd,&settings) < 0 )
   {
     printf("Error in tcgetattr().\n");
     return  -1;
   }
   
   /* Setting terminal to RAW mode to prevent unwanted processing */
-  cfmakeraw(&attributes);
+  cfmakeraw(&settings);
   
   /* Setting input and output baud rate for attribute struct*/
-  cfsetispeed(&attributes,baud_rate);
-  cfsetospeed(&attributes,baud_rate);
+  cfsetispeed(&settings,baud_rate);
+  cfsetospeed(&settings,baud_rate);
   
   /* Setting control flags:
    * CREAD to enable the receiver. We may need CLOCAL if we have blocking issues.
    * If so, we need to add a O_NONBLOCK on the earlier open() command.
    */
-  attributes.c_cflag |= ( CREAD /*| CLOCAL*/ );
-  attributes.c_iflag |= ( IGNPAR );    /* Ignores parity errors */
+  settings.c_cflag |= ( CREAD /*| CLOCAL*/ );
   
-  /* Applying new attributes to device along with when changes take effect.
-   * TCSAFLUSH is chosen as the change occurs after all data has been transmitted (?) 
+  /* Applying new settings to device along with when changes take effect.
+   * TCSAFLUSH is used because it waits for any currently queued output on the 
+   * terminal device is written. This allows any other programs who are using 
+   * the terminal device to finish operating, and then adjust to our own 
+   * parameters? 
    */
-  if ( tcsetattr(RFID_port_fd, TCSAFLUSH ,&attributes) < 0 )
+  if ( tcsetattr(RFID_port_fd , TCSAFLUSH  ,&settings) < 0 )
   {
     printf("Error in tcgetattr().\n");
     return  -1;
