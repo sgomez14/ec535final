@@ -13,15 +13,23 @@ RFIDGui::RFIDGui(int sensorPortFd, int debug_status, QWidget *parent)
     debug = debug_status;
 
     if (read_mode)
+    {
         ui->mode_message->setText("READ");
+        ui->enter_item_label->hide();
+        ui->enter_item_msg->hide();
+    }
     else if (read_mode == false)
+    {
         ui->mode_message->setText("WRITE");
+        ui->enter_item_label->show();
+        ui->enter_item_msg->show();
+    }
     else
         ui->mode_message->setText("UKNOW MODE");
 
     /* initialize timer for reading RFID scanner */
     connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner()));
-    this->rfidTimer.start(100);
+    this->rfidTimer.start(5);
 
 }
 
@@ -35,9 +43,17 @@ void RFIDGui::on_changeModeButton_clicked()
 {
     read_mode = !read_mode;
     if (read_mode)
+    {
         ui->mode_message->setText("READ");
+        ui->enter_item_label->hide();
+        ui->enter_item_msg->hide();
+    }
     else if (read_mode == false)
+    {
         ui->mode_message->setText("WRITE");
+        ui->enter_item_label->show();
+        ui->enter_item_msg->show();
+    }
     else
         ui->mode_message->setText("UKNOW MODE");
 
