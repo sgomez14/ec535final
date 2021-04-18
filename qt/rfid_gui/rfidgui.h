@@ -18,12 +18,16 @@ public:
     bool read_mode = true;
 
 private slots:
-    void on_pushButton_clicked();
+    void on_changeModeButton_clicked();
 
     /* custom slot function for reading RFID sensor */
     void read_RFID_scanner();
 
     void on_enter_item_msg_returnPressed();
+
+    void on_turnOffButton_clicked();
+
+    void tmpRead();
 
 private:
     Ui::RFIDGui *ui;

@@ -1,6 +1,7 @@
 #include "rfidgui.h"
 #include "ui_rfidgui.h"
 #include <fcntl.h>
+#include <unistd.h>
 
 RFIDGui::RFIDGui(int sensorPortFd, int debug_status, QWidget *parent)
     : QMainWindow(parent)
@@ -19,8 +20,8 @@ RFIDGui::RFIDGui(int sensorPortFd, int debug_status, QWidget *parent)
         ui->mode_message->setText("UKNOW MODE");
 
     /* initialize timer for reading RFID scanner */
-    connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner));
-    this->rfidTimer.start(20);
+    connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner()));
+    this->rfidTimer.start(100);
 
 }
 
@@ -30,7 +31,7 @@ RFIDGui::~RFIDGui()
 }
 
 
-void RFIDGui::on_pushButton_clicked()
+void RFIDGui::on_changeModeButton_clicked()
 {
     read_mode = !read_mode;
     if (read_mode)
@@ -46,7 +47,15 @@ void RFIDGui::on_pushButton_clicked()
 
 void RFIDGui::on_enter_item_msg_returnPressed()
 {
+    ui->enter_item_msg->clear();
+}
 
+void RFIDGui::tmpRead()
+{
+    //unsigned int tag_ID = 0;
+
+    //while (tag_ID == 0) tag_ID = read_RFID_scanner();
+    ui->item_message->setText("timer display message");
 }
 
 
@@ -106,8 +115,30 @@ void RFIDGui::read_RFID_scanner()
 
   if(debug) printf("Data Buffer: %s\nTag_ID: %u\n",RFID_output_buffer,tag_ID);
 
-  ui->item_message->setText("tags says this");
+  //ui->item_message->setText("tags says this");
+
+  switch(tag_ID)
+        {
+          case 3471480065:
+            ui->item_message->setText("This is an apple.");
+            break;
+          case 4108817665:
+            ui->item_message->setText("This is a banana.");
+            break;
+          case 2313852161:
+            ui->item_message->setText("This is a pizza.");
+            break;
+          default:
+            ui->item_message->setText("Tag not found.");
+        }
 
   //return tag_ID;
 }
 
+
+
+
+void RFIDGui::on_turnOffButton_clicked()
+{
+    QApplication::quit();
+}
