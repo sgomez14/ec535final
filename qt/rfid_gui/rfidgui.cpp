@@ -2,15 +2,25 @@
 #include "ui_rfidgui.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
+#include <QString>
+#include <map>
+#include <string>
+#include <iostream>
+#include <fstream>
 
-RFIDGui::RFIDGui(int sensorPortFd, int debug_status, QWidget *parent)
+
+RFIDGui::RFIDGui(int sensorPortFd, map<unsigned int, string> rfid_hashmap, int debug_status, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RFIDGui)
 {
     ui->setupUi(this);
 
     RFID_port_fd = sensorPortFd;
+    rfid_map = rfid_hashmap;
     debug = debug_status;
+    tag_for_write_scanned = false;
+    read_mode = true;
 
     if (read_mode)
     {
@@ -29,12 +39,14 @@ RFIDGui::RFIDGui(int sensorPortFd, int debug_status, QWidget *parent)
 
     /* initialize timer for reading RFID scanner */
     connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner()));
-    this->rfidTimer.start(5);
+    this->rfidTimer.start(750);
 
 }
 
 RFIDGui::~RFIDGui()
 {
+    ui->enter_item_msg->clear();
+    ui->item_message->clear();
     delete ui;
 }
 
@@ -51,19 +63,60 @@ void RFIDGui::on_changeModeButton_clicked()
     else if (read_mode == false)
     {
         ui->mode_message->setText("WRITE");
-        ui->enter_item_label->show();
-        ui->enter_item_msg->show();
+        ui->item_message->clear();
+        ui->item_message->setText("Scan tag to enter new message");
+//        ui->enter_item_label->show();
+//        ui->enter_item_msg->show();
     }
     else
         ui->mode_message->setText("UKNOW MODE");
-
 
 
 }
 
 void RFIDGui::on_enter_item_msg_returnPressed()
 {
-    ui->enter_item_msg->clear();
+
+    if (ui->enter_item_msg->text().isEmpty())
+    {
+        ui->enter_item_msg->clear();
+        ui->item_message->clear();
+        ui->item_message->setText("Enter a message to save to tag");
+    }
+    else
+    {
+        /* retreive message entered into textbox*/
+        QString newMessage = ui->enter_item_msg->text();
+
+        /* save the new message in the rfid map */
+        rfid_map[tag_for_write] = newMessage.toStdString();
+
+        ofstream rfid_file;
+        rfid_file.open("rfid_tag_info.txt");
+        if (!rfid_file)
+        {
+            cout << "Error opening file with RFID tag info." << endl;
+        }
+
+        /* save rfid map to text file */
+        for (auto const& x : rfid_map)
+        {
+            rfid_file << x.first << endl;
+            rfid_file << x.second << endl;
+        }
+
+        rfid_file.close();
+
+        read_mode = true;
+        tag_for_write = 0;
+        tag_for_write_scanned = false;
+        ui->enter_item_label->hide();
+        ui->enter_item_msg->hide();
+        ui->enter_item_msg->clear();
+        ui->mode_message->setText("READ");
+        connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner()));
+        this->rfidTimer.start(750);
+    }
 }
 
 void RFIDGui::tmpRead()
@@ -88,14 +141,18 @@ void RFIDGui::read_RFID_scanner()
   char RFID_output_buffer[5];
   char RFID_tag_ID[4];
   unsigned int  tag_ID = 0;
+  int olen;
 
   /* Writing command to RFID
    * Catching error if all 4 characters of command aren't sent
    */
+
   if(debug) printf("Writing Instruction...\n");
-  if ( write( RFID_port_fd , RFID_read_command , 5 ) != 5 )
+  if ((olen = write( RFID_port_fd , RFID_read_command , 5 )) != 5 )
   {
     printf("Error in sending instruction to RFID!\n");
+    printf("total bytes written: %d\n", olen);
+    printf("errno: %d\n", errno);
     return;
   }
 
@@ -131,24 +188,34 @@ void RFIDGui::read_RFID_scanner()
 
   if(debug) printf("Data Buffer: %s\nTag_ID: %u\n",RFID_output_buffer,tag_ID);
 
-  //ui->item_message->setText("tags says this");
+  if (read_mode)
+  {
+     if (tag_ID > 1)
+     {
+         QString tag_message = QString::fromStdString(rfid_map[tag_ID]);
+         ui->item_message->setText(tag_message);
+         ui->tag_number_message->setText(QString::fromStdString(to_string(tag_ID)));
+         cout << "Scanned Message: " << rfid_map[tag_ID] << endl;
+     }
 
-  switch(tag_ID)
-        {
-          case 3471480065:
-            ui->item_message->setText("This is an apple.");
-            break;
-          case 4108817665:
-            ui->item_message->setText("This is a banana.");
-            break;
-          case 2313852161:
-            ui->item_message->setText("This is a pizza.");
-            break;
-          default:
-            ui->item_message->setText("Tag not found.");
-        }
+  }
+  else
+  {
+      if (tag_ID == 0)
+      {
+          ui->item_message->setText("Scan Didn't Work. Scan Again.");
+      }
+      else if (!tag_for_write_scanned)
+      {
+          tag_for_write = tag_ID;
+          tag_for_write_scanned = true;
+          ui->enter_item_label->show();
+          ui->enter_item_msg->show();
+          ui->tag_number_message->setText(QString::fromStdString(to_string(tag_ID)));
+          rfidTimer.stop();
+      }
+  }
 
-  //return tag_ID;
 }
 
 
@@ -157,4 +224,14 @@ void RFIDGui::read_RFID_scanner()
 void RFIDGui::on_turnOffButton_clicked()
 {
     QApplication::quit();
+}
+
+void RFIDGui::on_changeModeButton_pressed()
+{
+    //rfidTimer.stop();
+}
+
+void RFIDGui::on_turnOffButton_pressed()
+{
+    rfidTimer.stop();
 }
