@@ -17,7 +17,7 @@ class RFIDGui : public QMainWindow
     Q_OBJECT
 
 public:
-    RFIDGui(int sensorPortFd, map<unsigned int, string> rfid_hashmap, int debug_status = 0, QWidget *parent = nullptr);
+    RFIDGui(int sensorPortFd, /*map<unsigned int, string> rfid_hashmap,*/ int debug_status = 0, QWidget *parent = nullptr);
     ~RFIDGui();
 
 
@@ -33,19 +33,22 @@ private slots:
 
     void tmpRead();
 
-    void on_changeModeButton_pressed();
+    //void on_changeModeButton_pressed();
 
-    void on_turnOffButton_pressed();
+
+    void on_read_button_clicked();
 
 private:
     Ui::RFIDGui *ui;
     QTimer rfidTimer;
+    int rfidTimer_delay;
     int RFID_port_fd;
     int debug;
     map<unsigned int, string> rfid_map;
-    unsigned int tag_for_write;
+    unsigned int scanned_tag_id;
     bool tag_for_write_scanned;
     bool read_mode;
+    int num_read_calls;
 
 };
 #endif // RFIDGUI_H

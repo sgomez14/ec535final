@@ -8,19 +8,52 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 
-RFIDGui::RFIDGui(int sensorPortFd, map<unsigned int, string> rfid_hashmap, int debug_status, QWidget *parent)
+RFIDGui::RFIDGui(int sensorPortFd, /*map<unsigned int, string> rfid_hashmap,*/ int debug_status, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::RFIDGui)
 {
     ui->setupUi(this);
 
+    //map<unsigned int, string> rfid_map;
+    ifstream rfid_file;
+    unsigned int tag_number;
+    string tag_num_string;
+
+    string tag_message;
+    rfid_file.open("rfid_tag_info.txt");
+    if (!rfid_file)
+    {
+        cout << "Error opening file with RFID tag info." << endl;
+    }
+
+    /* read in tag number */
+    while(getline(rfid_file, tag_num_string))
+    {
+        stringstream str_to_int;
+        cout << "Number read in from file: " << tag_num_string << endl;
+        str_to_int << tag_num_string;
+        str_to_int >> tag_number;
+        cout << "Number coming out of streambuffer: " << tag_number << endl;
+        /* reset the streambuffer */
+        str_to_int.flush();
+
+        /* read in tag message */
+        getline(rfid_file, tag_message);
+        cout << "tag#: " << tag_number << " | reading from file message: " << tag_message << endl;
+        rfid_map.insert(pair<unsigned int,string>(tag_number,tag_message));
+    }
+
+    rfid_file.close();
+
     RFID_port_fd = sensorPortFd;
-    rfid_map = rfid_hashmap;
+    //rfid_map = rfid_hashmap;
     debug = debug_status;
     tag_for_write_scanned = false;
     read_mode = true;
+    num_read_calls = 100;
 
     if (read_mode)
     {
@@ -38,8 +71,9 @@ RFIDGui::RFIDGui(int sensorPortFd, map<unsigned int, string> rfid_hashmap, int d
         ui->mode_message->setText("UKNOW MODE");
 
     /* initialize timer for reading RFID scanner */
-    connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner()));
-    this->rfidTimer.start(750);
+    rfidTimer_delay = 150;
+//    connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner()));
+//    this->rfidTimer.start(rfidTimer_delay);
 
 }
 
@@ -53,20 +87,49 @@ RFIDGui::~RFIDGui()
 
 void RFIDGui::on_changeModeButton_clicked()
 {
-    read_mode = !read_mode;
+    //read_mode = !read_mode;
+    read_mode = false;
     if (read_mode)
     {
         ui->mode_message->setText("READ");
         ui->enter_item_label->hide();
         ui->enter_item_msg->hide();
+        ui->enter_item_msg->clear();
+        ui->tag_number_message->clear();
+
+        /* reset the tag buffer and tag write flag */
+        scanned_tag_id = 0;
+        tag_for_write_scanned = false;
+
+        /* reactivate timer */
+//        if (!rfidTimer.isActive())
+//        {
+//            connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner()));
+//            this->rfidTimer.start(rfidTimer_delay);
+//        }
     }
     else if (read_mode == false)
     {
+        scanned_tag_id = 0;
+        tag_for_write_scanned = false;
         ui->mode_message->setText("WRITE");
         ui->item_message->clear();
         ui->item_message->setText("Scan tag to enter new message");
-//        ui->enter_item_label->show();
-//        ui->enter_item_msg->show();
+
+        int counter = 0;
+
+        while (scanned_tag_id <= 1 && counter <= num_read_calls)
+        {
+            read_RFID_scanner();
+            counter++;
+        }
+
+        /* signal to user that the rfid reader timed-out */
+        if (counter > num_read_calls)
+        {
+            ui->item_message->setText("RFID reader timed-out: Press WRITE again");
+        }
+
     }
     else
         ui->mode_message->setText("UKNOW MODE");
@@ -89,7 +152,7 @@ void RFIDGui::on_enter_item_msg_returnPressed()
         QString newMessage = ui->enter_item_msg->text();
 
         /* save the new message in the rfid map */
-        rfid_map[tag_for_write] = newMessage.toStdString();
+        rfid_map[scanned_tag_id] = newMessage.toStdString();
 
         ofstream rfid_file;
         rfid_file.open("rfid_tag_info.txt");
@@ -107,15 +170,17 @@ void RFIDGui::on_enter_item_msg_returnPressed()
 
         rfid_file.close();
 
-        read_mode = true;
-        tag_for_write = 0;
+        read_mode = false;
+        scanned_tag_id = 0;
         tag_for_write_scanned = false;
         ui->enter_item_label->hide();
         ui->enter_item_msg->hide();
         ui->enter_item_msg->clear();
-        ui->mode_message->setText("READ");
-        connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner()));
-        this->rfidTimer.start(750);
+        ui->mode_message->setText("WRITE");
+        ui->tag_number_message->clear();
+        ui->item_message->setText("Scan tag to enter new message");
+//        connect(&this->rfidTimer, SIGNAL(timeout()), this, SLOT(read_RFID_scanner()));
+//        this->rfidTimer.start(rfidTimer_delay);
     }
 }
 
@@ -192,6 +257,7 @@ void RFIDGui::read_RFID_scanner()
   {
      if (tag_ID > 1)
      {
+         scanned_tag_id = tag_ID;
          QString tag_message = QString::fromStdString(rfid_map[tag_ID]);
          ui->item_message->setText(tag_message);
          ui->tag_number_message->setText(QString::fromStdString(to_string(tag_ID)));
@@ -201,13 +267,13 @@ void RFIDGui::read_RFID_scanner()
   }
   else
   {
-      if (tag_ID == 0)
+      if (tag_ID <= 1)
       {
           ui->item_message->setText("Scan Didn't Work. Scan Again.");
       }
       else if (!tag_for_write_scanned)
       {
-          tag_for_write = tag_ID;
+          scanned_tag_id = tag_ID;
           tag_for_write_scanned = true;
           ui->enter_item_label->show();
           ui->enter_item_msg->show();
@@ -226,12 +292,37 @@ void RFIDGui::on_turnOffButton_clicked()
     QApplication::quit();
 }
 
-void RFIDGui::on_changeModeButton_pressed()
-{
-    //rfidTimer.stop();
-}
+//void RFIDGui::on_changeModeButton_pressed()
+//{
+//    //rfidTimer.stop();
+//}
 
-void RFIDGui::on_turnOffButton_pressed()
+
+
+void RFIDGui::on_read_button_clicked()
 {
-    rfidTimer.stop();
+    read_mode = true;
+    ui->mode_message->setText("READ");
+    ui->enter_item_label->hide();
+    ui->enter_item_msg->hide();
+    ui->enter_item_msg->clear();
+    ui->tag_number_message->clear();
+
+    /* reset the tag buffer and tag write flag */
+    scanned_tag_id = 0;
+    tag_for_write_scanned = false;
+
+    int counter = 0;
+
+    while (scanned_tag_id <= 1 && counter <= num_read_calls)
+    {
+        read_RFID_scanner();
+        counter++;
+    }
+
+    /* signal to user that the rfid reader timed-out */
+    if (counter > num_read_calls)
+    {
+        ui->item_message->setText("RFID reader timed-out: Press READ again");
+    }
 }

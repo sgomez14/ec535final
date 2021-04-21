@@ -52,30 +52,30 @@ int main(int argc, char *argv[])
     }
 
     /* hashmap for storing rfid tag IDs and their associated messages */
-    map<unsigned int, string> rfid_map;
-    ifstream rfid_file;
-    unsigned int tag_number;
-    string tag_num_string;
-    stringstream str_to_int;
-    string tag_message;
-    rfid_file.open("rfid_tag_info.txt");
-    if (!rfid_file)
-    {
-        cout << "Error opening file with RFID tag info." << endl;
-    }
+//    map<unsigned int, string> rfid_map;
+//    ifstream rfid_file;
+//    unsigned int tag_number;
+//    string tag_num_string;
+//    stringstream str_to_int;
+//    string tag_message;
+//    rfid_file.open("rfid_tag_info.txt");
+//    if (!rfid_file)
+//    {
+//        cout << "Error opening file with RFID tag info." << endl;
+//    }
 
-    /* read in tag number */
-    while(getline(rfid_file, tag_num_string))
-    {
-        str_to_int << tag_num_string;
-        str_to_int >> tag_number;
+//    /* read in tag number */
+//    while(getline(rfid_file, tag_num_string))
+//    {
+//        str_to_int << tag_num_string;
+//        str_to_int >> tag_number;
 
-        /* read in tag message */
-        getline(rfid_file, tag_message);
-        rfid_map.insert(pair<unsigned int,string>(tag_number,tag_message));
-    }
+//        /* read in tag message */
+//        getline(rfid_file, tag_message);
+//        rfid_map.insert(pair<unsigned int,string>(tag_number,tag_message));
+//    }
 
-    rfid_file.close();
+//    rfid_file.close();
 
     /* Attributes for sensor */
     struct termios attributes;
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 //    printf("RFID_port_fd: %d\n", RFID_port_fd);
 
     QApplication a(argc, argv);
-    RFIDGui gui_screen(RFID_port_fd, rfid_map);
+    RFIDGui gui_screen(RFID_port_fd/*, rfid_map*/);
     gui_screen.show();
     return a.exec();
 }

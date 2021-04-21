@@ -95,9 +95,9 @@
    <widget class="QPushButton" name="changeModeButton">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>320</x>
       <y>170</y>
-      <width>221</width>
+      <width>131</width>
       <height>61</height>
      </rect>
     </property>
@@ -107,7 +107,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Change Mode</string>
+     <string>Write</string>
     </property>
    </widget>
    <widget class="QLabel" name="enter_item_label">
@@ -151,7 +151,7 @@
      <rect>
       <x>10</x>
       <y>170</y>
-      <width>141</width>
+      <width>101</width>
       <height>61</height>
      </rect>
     </property>
@@ -161,7 +161,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Turn Off Device</string>
+     <string>ON/OFF</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="tag_number_message">
@@ -198,6 +198,24 @@
     </property>
     <property name="text">
      <string>Tag #</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="read_button">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>170</y>
+      <width>131</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Read</string>
     </property>
    </widget>
   </widget>
