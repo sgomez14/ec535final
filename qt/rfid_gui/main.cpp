@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <QFile>
 
 /* includes for C code */
 #include <stdio.h>
@@ -129,6 +130,7 @@ int main(int argc, char *argv[])
 
 //    int RFID_port_fd = 1;
 //    printf("RFID_port_fd: %d\n", RFID_port_fd);
+
 
     QApplication a(argc, argv);
     RFIDGui gui_screen(RFID_port_fd/*, rfid_map*/);

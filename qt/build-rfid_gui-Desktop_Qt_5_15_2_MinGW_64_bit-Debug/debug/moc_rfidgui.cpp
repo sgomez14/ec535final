@@ -22,8 +22,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_RFIDGui_t {
-    QByteArrayData data[5];
-    char stringdata0[81];
+    QByteArrayData data[8];
+    char stringdata0[143];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -33,14 +33,19 @@ struct qt_meta_stringdata_RFIDGui_t {
 static const qt_meta_stringdata_RFIDGui_t qt_meta_stringdata_RFIDGui = {
     {
 QT_MOC_LITERAL(0, 0, 7), // "RFIDGui"
-QT_MOC_LITERAL(1, 8, 21), // "on_pushButton_clicked"
-QT_MOC_LITERAL(2, 30, 0), // ""
-QT_MOC_LITERAL(3, 31, 17), // "read_RFID_scanner"
-QT_MOC_LITERAL(4, 49, 31) // "on_enter_item_msg_returnPressed"
+QT_MOC_LITERAL(1, 8, 27), // "on_changeModeButton_clicked"
+QT_MOC_LITERAL(2, 36, 0), // ""
+QT_MOC_LITERAL(3, 37, 17), // "read_RFID_scanner"
+QT_MOC_LITERAL(4, 55, 31), // "on_enter_item_msg_returnPressed"
+QT_MOC_LITERAL(5, 87, 24), // "on_turnOffButton_clicked"
+QT_MOC_LITERAL(6, 112, 7), // "tmpRead"
+QT_MOC_LITERAL(7, 120, 22) // "on_read_button_clicked"
 
     },
-    "RFIDGui\0on_pushButton_clicked\0\0"
-    "read_RFID_scanner\0on_enter_item_msg_returnPressed"
+    "RFIDGui\0on_changeModeButton_clicked\0"
+    "\0read_RFID_scanner\0on_enter_item_msg_returnPressed\0"
+    "on_turnOffButton_clicked\0tmpRead\0"
+    "on_read_button_clicked"
 };
 #undef QT_MOC_LITERAL
 
@@ -50,7 +55,7 @@ static const uint qt_meta_data_RFIDGui[] = {
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-       3,   14, // methods
+       6,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -58,11 +63,17 @@ static const uint qt_meta_data_RFIDGui[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   29,    2, 0x08 /* Private */,
-       3,    0,   30,    2, 0x08 /* Private */,
-       4,    0,   31,    2, 0x08 /* Private */,
+       1,    0,   44,    2, 0x08 /* Private */,
+       3,    0,   45,    2, 0x08 /* Private */,
+       4,    0,   46,    2, 0x08 /* Private */,
+       5,    0,   47,    2, 0x08 /* Private */,
+       6,    0,   48,    2, 0x08 /* Private */,
+       7,    0,   49,    2, 0x08 /* Private */,
 
  // slots: parameters
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -76,9 +87,12 @@ void RFIDGui::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
         auto *_t = static_cast<RFIDGui *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->on_pushButton_clicked(); break;
+        case 0: _t->on_changeModeButton_clicked(); break;
         case 1: _t->read_RFID_scanner(); break;
         case 2: _t->on_enter_item_msg_returnPressed(); break;
+        case 3: _t->on_turnOffButton_clicked(); break;
+        case 4: _t->tmpRead(); break;
+        case 5: _t->on_read_button_clicked(); break;
         default: ;
         }
     }
@@ -114,13 +128,13 @@ int RFIDGui::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 3)
+        if (_id < 6)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 3;
+        _id -= 6;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 3)
+        if (_id < 6)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 3;
+        _id -= 6;
     }
     return _id;
 }

@@ -56,7 +56,7 @@ OBJECTS       = release/main.o \
 		release/rfidgui.o \
 		release/moc_rfidgui.o
 
-DIST          =  ..\rfid_gui\rfidgui.h ..\rfid_gui\main.cpp \
+DIST          = rfid_tag_info.txt ..\rfid_gui\rfidgui.h ..\rfid_gui\main.cpp \
 		..\rfid_gui\rfidgui.cpp
 QMAKE_TARGET  = rfid_gui
 DESTDIR        = release\ #avoid trailing-slash linebreak
@@ -361,7 +361,8 @@ release/main.o: ../rfid_gui/main.cpp ../rfid_gui/rfidgui.h \
 		C:/Qt/5.15.2/mingw81_64/include/QtCore/qeventloop.h \
 		C:/Qt/5.15.2/mingw81_64/include/QtWidgets/qdesktopwidget.h \
 		C:/Qt/5.15.2/mingw81_64/include/QtGui/qguiapplication.h \
-		C:/Qt/5.15.2/mingw81_64/include/QtGui/qinputmethod.h
+		C:/Qt/5.15.2/mingw81_64/include/QtGui/qinputmethod.h \
+		C:/Qt/5.15.2/mingw81_64/include/QtCore/QFile
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\main.o ..\rfid_gui\main.cpp
 
 release/rfidgui.o: ../rfid_gui/rfidgui.cpp ../rfid_gui/rfidgui.h \
@@ -502,7 +503,8 @@ release/rfidgui.o: ../rfid_gui/rfidgui.cpp ../rfid_gui/rfidgui.h \
 		C:/Qt/5.15.2/mingw81_64/include/QtWidgets/qabstractbutton.h \
 		C:/Qt/5.15.2/mingw81_64/include/QtWidgets/QStatusBar \
 		C:/Qt/5.15.2/mingw81_64/include/QtWidgets/qstatusbar.h \
-		C:/Qt/5.15.2/mingw81_64/include/QtWidgets/QWidget
+		C:/Qt/5.15.2/mingw81_64/include/QtWidgets/QWidget \
+		C:/Qt/5.15.2/mingw81_64/include/QtCore/QString
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\rfidgui.o ..\rfid_gui\rfidgui.cpp
 
 release/moc_rfidgui.o: release/moc_rfidgui.cpp 
