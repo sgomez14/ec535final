@@ -1283,7 +1283,7 @@ QStatusBar
     </property>
     <property name="font">
      <font>
-      <pointsize>10</pointsize>
+      <pointsize>9</pointsize>
       <weight>75</weight>
       <bold>true</bold>
      </font>
@@ -1429,7 +1429,7 @@ QStatusBar
      </font>
     </property>
     <property name="text">
-     <string>ON/OFF</string>
+     <string>OFF</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="tag_number_message">
