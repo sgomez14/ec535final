@@ -9,7 +9,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-//#include <QSerialPort>
 
 #include <termios.h>
 
@@ -18,13 +17,10 @@ RFIDGui::RFIDGui(/* int sensorPortFd, map<unsigned int, string> rfid_hashmap,*/ 
     : QMainWindow(parent)
     , ui(new Ui::RFIDGui)
 {
-    debug = debug_status;
-
+    /* setup UI */
     ui->setupUi(this);
 
     /* initialize serial port */
-    //serial_port.setPortName(serial_port_name);
-    //serial_port.setBaudRate(baud_rate);
     init_serial_port();
 
     /* load tag data from file */
@@ -33,22 +29,31 @@ RFIDGui::RFIDGui(/* int sensorPortFd, map<unsigned int, string> rfid_hashmap,*/ 
     /* initialize read mode */
     init_read_mode();
 
+    /* set internal debug status */
+    debug = debug_status;
+
 }
 
 RFIDGui::~RFIDGui()
 {
+    /* clear all of the textboxes on the gui */
     ui->enter_item_msg->clear();
     ui->item_message->clear();
+    ui->mode_message->clear();
+    ui->tag_number_message->clear();
+
     delete ui;
 }
 
 
 void RFIDGui::on_changeModeButton_clicked()
 {
-    //read_mode = !read_mode;
     read_mode = false;
+
+    /* error checking that read_mode is still false */
     if (read_mode)
     {
+        /* set gui view for read mode */
         ui->mode_message->setText("READ");
         ui->enter_item_label->hide();
         ui->enter_item_msg->hide();
@@ -62,14 +67,19 @@ void RFIDGui::on_changeModeButton_clicked()
     }
     else if (read_mode == false)
     {
+        /* set flag that help determine if an RFID tag was scanned */
         scanned_tag_id = 0;
         tag_for_write_scanned = false;
+
+        /* set gui view for write mode */
         ui->mode_message->setText("WRITE");
         ui->item_message->clear();
         ui->item_message->setText("Scan tag to enter new message");
 
+        /* set counter that limits how many times the rfid read function is called */
         int counter = 0;
 
+        /* while loop to repeatedly probe rfid module  */
         while (scanned_tag_id <= 1 && counter <= num_read_calls)
         {
             read_RFID_scanner();
@@ -92,6 +102,7 @@ void RFIDGui::on_changeModeButton_clicked()
 void RFIDGui::on_enter_item_msg_returnPressed()
 {
 
+    /* require user to enter message if they want to change a tag message */
     if (ui->enter_item_msg->text().isEmpty())
     {
         ui->enter_item_msg->clear();
@@ -106,6 +117,7 @@ void RFIDGui::on_enter_item_msg_returnPressed()
         /* save the new message in the rfid map */
         rfid_map[scanned_tag_id] = newMessage.toStdString();
 
+        /* open data file that has rfid tag information */
         ofstream rfid_file;
         rfid_file.open("rfid_tag_info.txt");
         if (!rfid_file)
@@ -122,9 +134,14 @@ void RFIDGui::on_enter_item_msg_returnPressed()
 
         rfid_file.close();
 
+        /* continue to indicate that device is in write mode */
         read_mode = false;
+
+        /* reset flags that indicate if a tag has been scanned */
         scanned_tag_id = 0;
         tag_for_write_scanned = false;
+
+        /* update GUI view */
         ui->enter_item_label->hide();
         ui->enter_item_msg->hide();
         ui->enter_item_msg->clear();
@@ -134,25 +151,20 @@ void RFIDGui::on_enter_item_msg_returnPressed()
     }
 }
 
-void RFIDGui::tmpRead()
-{
-    //unsigned int tag_ID = 0;
-
-    //while (tag_ID == 0) tag_ID = read_RFID_scanner();
-    ui->item_message->setText("timer display message");
-}
-
 
 void RFIDGui::read_RFID_scanner()
 {
-  /* Per RFID sensor documentation, we need to send a 3 byte signal to the device to signal
-   * a command, and then another byte to signal a specific RFID_Read command.
-   */
+  /*
+    Per RFID sensor documentation, we need to send a 3 byte signal to the device to signal
+    a command, and then another byte to signal a specific RFID_Read command.
 
-  char RFID_read_command[5] = {'!','R','W','',' '};
-  /* Weird, but without the space at the end, the RFID module holds during the read...
-   * The square is hex value 0x01, which indicates the read command for our sensor.
+    Weird, but without the space at the end, the RFID module holds during the read...
+    The square is hex value 0x01, which indicates the read command for our sensor.
    */
+  char RFID_read_command[5] = {'!','R','W','',' '};
+
+
+  /* variables to store the output from the RFID sensor */
   char RFID_output_buffer[5];
   char RFID_tag_ID[4];
   unsigned int  tag_ID = 0;
@@ -163,10 +175,8 @@ void RFIDGui::read_RFID_scanner()
   /* Writing command to RFID
    * Catching error if all 4 characters of command aren't sent
    */
-
   if(debug) printf("Writing Instruction...\n");
   if ((olen = write( RFID_port_fd , RFID_read_command , 5 )) != 5 )
-  //if ((olen = serial_port.write(RFID_read_command,5)) != 5)
   {
     printf("Error in sending instruction to RFID!\n");
     printf("total bytes written: %d\n", olen);
@@ -175,11 +185,10 @@ void RFIDGui::read_RFID_scanner()
   }
 
   /* Reading signal from RFID module
-   * Expecting 5 bytes returned. First byte is status, rest of the 32-bit tag ID.
+   * Expecting 5 bytes returned. First byte is status, rest is the 32-bit tag ID.
    */
   if(debug) printf("Reading RFID...\n");
   if ( read( RFID_port_fd , &RFID_output_buffer , 5 ) != 5)
-  //if (serial_port.read(RFID_output_buffer, 5) != 5)
   {
     if(debug) printf("Error in reading RFID output!\nOutput Buffer: %s\n",RFID_output_buffer);
     return;
@@ -213,6 +222,8 @@ void RFIDGui::read_RFID_scanner()
      {
          scanned_tag_id = tag_ID;
          QString tag_message = QString::fromStdString(rfid_map[tag_ID]);
+
+         /* check if the scanned tag is in the database */
          if (tag_message == "")
          {
              ui->item_message->setText("Tag not in database.");
@@ -222,13 +233,16 @@ void RFIDGui::read_RFID_scanner()
              ui->item_message->setText(tag_message);
          }
 
+         /* display the ID of the scanned tag */
          ui->tag_number_message->setText(QString::fromStdString(to_string(tag_ID)));
-         cout << "Scanned Message: " << rfid_map[tag_ID] << endl;
+
+         if(debug) cout << "Scanned Message: " << rfid_map[tag_ID] << endl;
      }
 
   }
   else
   {
+      /* check if the scan worked */
       if (tag_ID <= 1)
       {
           ui->item_message->setText("Scan Didn't Work. Scan Again.");
@@ -240,13 +254,10 @@ void RFIDGui::read_RFID_scanner()
           ui->enter_item_label->show();
           ui->enter_item_msg->show();
           ui->tag_number_message->setText(QString::fromStdString(to_string(tag_ID)));
-          rfidTimer.stop();
       }
   }
 
 }
-
-
 
 
 void RFIDGui::on_turnOffButton_clicked()
@@ -254,15 +265,10 @@ void RFIDGui::on_turnOffButton_clicked()
     QApplication::quit();
 }
 
-//void RFIDGui::on_changeModeButton_pressed()
-//{
-//    //rfidTimer.stop();
-//}
-
-
 
 void RFIDGui::on_read_button_clicked()
 {
+    /* gui view for read mode */
     read_mode = true;
     ui->mode_message->setText("READ");
     ui->enter_item_label->hide();
@@ -299,20 +305,14 @@ int RFIDGui::init_serial_port()
         speed_t baud_rate = B9600;
 
         /* Opening device. Connected to P9_11 for RX and P9_13 for TX
-         * O_NONBLOCK may be needed (https://stackoverflow.com/questions/13075595/how-do-the-clocal-and-crtscts-flags-in-termios-c-cflag-affect-the-serial-port)
          */
-        if ( ( RFID_port_fd = open(serial_port_name, O_RDWR /*| O_EXCL | O_NONBLOCK*/) ) < 0 )
+        if ( ( RFID_port_fd = open(serial_port_name, O_RDWR) ) < 0 )
         {
           printf("Error opening device.\n");
           return  -1;
         }
 
-        //turning off non-blocking
-        /*fcntl( RFID_port_fd, F_SETFL, fcntl( RFID_port_fd, F_GETFL ) & ~O_NONBLOCK );*/
-
-        /* Getting current attributes for device to populate structure
-         * Configures attributes based on default values (?)
-         */
+        /* Getting current attributes for device to populate structure */
         if ( tcgetattr(RFID_port_fd,&attributes) < 0 )
         {
           printf("Error in tcgetattr().\n");
@@ -328,10 +328,9 @@ int RFIDGui::init_serial_port()
         cfsetospeed(&attributes,baud_rate);
 
         /* Setting control flags:
-         * CREAD to enable the receiver. We may need CLOCAL if we have blocking issues.
-         * If so, we need to add a O_NONBLOCK on the earlier open() command.
+         * CREAD to enable the receiver.
          */
-        attributes.c_cflag |= ( CREAD /*| CLOCAL*/ );
+        attributes.c_cflag |= (CREAD);
 
         /* Applying new attributes to device along with when changes take effect.
          * TCSAFLUSH is chosen as the change occurs after all data has been transmitted
@@ -363,16 +362,23 @@ void RFIDGui::init_tag_data()
     while(getline(rfid_file, tag_num_string))
     {
         stringstream str_to_int;
-        cout << "Number read in from file: " << tag_num_string << endl;
+
+        if (debug) cout << "Number read in from file: " << tag_num_string << endl;
+
+        /* convert string number into an unsigned int */
         str_to_int << tag_num_string;
         str_to_int >> tag_number;
-        cout << "Number coming out of streambuffer: " << tag_number << endl;
+
+        if (debug) cout << "Number coming out of streambuffer: " << tag_number << endl;
+
         /* reset the streambuffer */
         str_to_int.flush();
 
         /* read in tag message */
         getline(rfid_file, tag_message);
-        cout << "tag#: " << tag_number << " | reading from file message: " << tag_message << endl;
+
+        if (debug) cout << "tag#: " << tag_number << " | reading from file message: " << tag_message << endl;
+
         rfid_map.insert(pair<unsigned int,string>(tag_number,tag_message));
     }
 

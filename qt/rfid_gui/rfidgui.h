@@ -2,13 +2,9 @@
 #define RFIDGUI_H
 
 #include <QMainWindow>
-#include <QTimer>
 #include <map>
 #include <string>
-//#include <QSerialPort>
 
-//#include <termios.h>
-//#include <string.h>
 
 using namespace std;
 
@@ -26,45 +22,51 @@ public:
 
 
 private slots:
-    void on_changeModeButton_clicked();
 
     /* custom slot function for reading RFID sensor */
     void read_RFID_scanner();
 
+    /* when user presses enter button on keyboard */
     void on_enter_item_msg_returnPressed();
 
+    /* when turn off button pressed and released */
     void on_turnOffButton_clicked();
 
-    void tmpRead();
-
-    //void on_changeModeButton_pressed();
-
-
+    /* when read mode button pressed and released */
     void on_read_button_clicked();
 
+    /* when read mode button pressed */
     void on_read_button_pressed();
 
+    /* when write mode button pressed */
     void on_changeModeButton_pressed();
+
+    /* when write mode button pressed and released */
+    void on_changeModeButton_clicked();
 
 private:
     Ui::RFIDGui *ui;
-    QTimer rfidTimer;
-    int rfidTimer_delay;
     int debug;
+
+    /* data structure to store tags and their messages */
     map<unsigned int, string> rfid_map;
+
+    /* variables to track when an RFID tag has been scanned */
     unsigned int scanned_tag_id;
     bool tag_for_write_scanned;
+
+    /* variable to track read mode status */
     bool read_mode;
+
+    /* variable is the threshold for when a function should stop probing the RFID sensor */
     const int num_read_calls = 100;
 
 
     /* settings for serial port */
-//    QSerialPort serial_port;
-//    const QString serial_port_name = "/dev/ttyS4";
     int RFID_port_fd;
     char serial_port_name[11] = "/dev/ttyS4";
-//    speed_t baud_rate = B9600; //QSerialPort::Baud9600;
 
+    /* initialization functions */
     int  init_serial_port();
     void init_tag_data();
     void init_read_mode();
