@@ -1,10 +1,9 @@
-http://beaglebone.cameon.net/home/serial-ports-uart
+Serial Port Pinout: http://beaglebone.cameon.net/home/serial-ports-uart
 
-http://www.linux.it/~rubini/docs/ksys/ksys.html
+Termios Documentation: https://linux.die.net/man/3/cfmakeraw
 
-https://linux.die.net/man/3/cfmakeraw
+Modem Connect Flag: https://tldp.org/HOWTO/Modem-HOWTO-4.html
 
-https://tldp.org/HOWTO/Modem-HOWTO-4.html
+GNU Official Documentation for Termios: https://ftp.gnu.org/old-gnu/Manuals/glibc-2.2.3/html_chapter/libc_17.html
 
-https://ftp.gnu.org/old-gnu/Manuals/glibc-2.2.3/html_chapter/libc_17.html#SEC363
-
+Another RFID Implementation: https://github.com/bmoquist/RFIDTransactionUnit
