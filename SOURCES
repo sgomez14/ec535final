@@ -7,3 +7,6 @@ Modem Connect Flag: https://tldp.org/HOWTO/Modem-HOWTO-4.html
 GNU Official Documentation for Termios: https://ftp.gnu.org/old-gnu/Manuals/glibc-2.2.3/html_chapter/libc_17.html
 
 Another RFID Implementation: https://github.com/bmoquist/RFIDTransactionUnit
+- This previous EC 535 project from 2014 pointed us to the Termios library, which we used to work with the serial port.
+
+GUI CSS Presets: Adaptic. https://qss-stock.devsecstudio.com/ 
